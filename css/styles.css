@@ -1,0 +1,15 @@
+form  {
+    background-image: linear-gradient(blue, white);
+    font-family: 'Andale', monospace;
+    font-size:  22px;
+}
+
+h1 {
+    font-family: 'Andale', monospace;
+    font-size: 3.0em;
+    background-image: linear-gradient(white, blue);
+    padding: 30px;
+    color: yellow;
+
+}
+

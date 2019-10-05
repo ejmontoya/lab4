@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Sign Up Page </title>
+        <meta charset="utf-8">
+        <script src="https://code.jquery.com/jquery-3.1.0.js"></script>
+        <link href="css/styles.css" rel="stylesheet" type="text/css" />
+
+        <script>
+   /* global $ */
+   
+   var usernameAvailable = false; // not sure about this here?
+   var count = 0;   // prevent "state" from appending multiple times from api 
+
+   
+   $(document).ready(function(){
+       
+       //=======================================================================
+       //=======================================================================
+       $("#zipCode").on("change", function() 
+       {
+           //alert("#zipCode").val()
+           //var url = "https://cst336.herokuapp.com/projects/api/cityInfoAPI.php?zip=93955";
+           $("#zipError").html(""); //Clear error for next input
+           
+           $.ajax({
+               
+               method: "GET",
+               url: "https://cst336.herokuapp.com/projects/api/cityInfoAPI.php",
+               dataType: "json",
+               data: { "zip": $("#zipCode").val() }, //refers to list of parameter from api
+               success: function(result,status) {
+                    //alert(result.city);   //this is for testing for code proper function
+                    if(result == false)
+                    {
+                        $("#zipError").html("Zip code not found");
+                        $("#zipError").css("color", "red");
+                    }
+                    
+                    $("#city").html(result.city);
+                    $("#latitude").html(result.latitude);
+                    $("#longitude").html(result.longitude);
+               }
+
+            });//ajax
+            
+       });//ZipCode
+       
+       //=======================================================================
+       //=======================================================================
+        $.ajax({
+
+                method: "GET",
+                url: "https://cst336.herokuapp.com/projects/api/state_abbrAPI.php",
+                dataType: "json",
+                data: { "state": $("#state").val() },
+                success: function(result,status) 
+                {
+                    //alert(result[0].county); //displays first county in array
+                    for (let i=0; i<50; i++)
+                    {
+                        if (count < 1)
+                        {
+                            $("#state").append(`<option>${result[i].usps}</option>`);
+                        }
+                    }
+                    count++;
+                    //$("#county").html(`<option>${result[0].county}<option>`); //variable plus string literal need "cooly bracket"
+                }
+            });//ajax
+       
+       //Decided not to use "click" function, state pulls up smoother than with function
+        /*
+        $("#state").on("click", function()  
+        {
+           $.ajax({
+
+                method: "GET",
+                url: "https://cst336.herokuapp.com/projects/api/state_abbrAPI.php",
+                dataType: "json",
+                data: { "state": $("#state").val() },
+                success: function(result,status) 
+                {
+                    //alert(result[0].county); //displays first county in array
+                    for (let i=0; i<50; i++)
+                    {
+                        if (count < 1)
+                        {
+                            $("#state").append(`<option>${result[i].usps}</option>`);
+                        }
+                    }
+                    count++;
+                    //$("#county").html(`<option>${result[0].county}<option>`); //variable plus string literal need "cooly bracket"
+                }
+            });//ajax
+        }); //function to pull from api to display all states
+        //*/
+       //=======================================================================
+       //=======================================================================
+       $("#state").on("change", function()  //Change is used rather than click, so we can type a value
+       {
+           //alert($("#state").val());
+           
+           $("#county").html("Select One"); //clears prior selection for county
+           
+           $.ajax({
+
+                method: "GET",
+                url: "https://cst336.herokuapp.com/projects/api/countyListAPI.php",
+                dataType: "json",
+                data: { "state": $("#state").val() },
+                success: function(result,status) 
+                {
+                    //alert(result[0].county); //displays first county in array
+                    for (let i=0; i<result.length; i++)
+                    {
+                        $("#county").append(`<option>${result[i].county}</option>`);
+                    }
+                    
+                    //$("#county").html(`<option>${result[0].county}</option>`); //variable plus string literal need "cooly bracket"
+                }
+
+            });//ajax
+           
+       }); //State function close for county
+       
+       //=======================================================================
+       //=======================================================================
+       $("#username").on("change", function() 
+       {
+           //
+           $.ajax({
+
+                method: "GET",
+                url: "https://cst336.herokuapp.com/projects/api/usernamesAPI.php",
+                dataType: "json",
+                data: { "username": $("#username").val() },
+                success: function(result,status) 
+                {
+                    //alert(result.available); //displays first county in array
+                    
+                    if(result.available)
+                    {
+                        //alert("Username is available");
+                        $("#usernameError").html("Username is available");
+                        $("#usernameError").css("color", "green");
+                        usernameAvailable = true;
+                    }
+                    else
+                    {
+                        //alert("Username is not available");
+                        $("#usernameError").html("Username is not available");
+                        $("#usernameError").css("color", "red");
+                        usernameAvailable = false;
+                    }
+     
+                }
+
+            });//ajax
+       }); //username function close
+       
+       //=======================================================================
+       //=======================================================================
+       $("#signupForm").on("submit", function(e) {
+           //alert("Submitting form
+           if (!isFormValid()) {
+               e.preventDefault();
+           }
+           //event.preventDefault();
+       }); // end of submit form
+       
+       //=======================================================================
+       //=======================================================================
+       function isFormValid(){
+           
+           //reset errors upon submit
+           $("#usernameError").html("");
+           $("#pwError").html("");
+           $("#pwError").html("");
+           $("#passwordAgainError").html("");
+           
+           var isValid = true;
+           if (!usernameAvailable) {
+               isValid = false;
+           }
+           
+           //Validate username
+           if ($("#username").val().length == 0)  {
+               isValid = false;
+               $("#usernameError").html("Username is required");
+               $("#usernameError").css("color", "red");
+           }
+           
+           //Validate password is correct length
+           if ($("#pw").val().length == 0)  {
+               isValid = false;
+               $("#pwError").html("Need to input a password");
+               $("#pwError").css("color", "red");
+           }
+           else if ($("#pw").val().length < 6)  {
+               isValid = false;
+               $("#pwError").html("Password must be at least 6 characters");
+               $("#pwError").css("color", "red");
+           }
+           
+           //Validate password matches password again
+           if ($("#pw").val() != $("#passwordAgain").val()){
+               $("#passwordAgainError").html("Password Mismatch!");
+               $("#passwordAgainError").css("color", "red");
+               isValid = false;
+           }
+           
+           return isValid;
+       } // end of check if form is valid
+       
+   }); // document.ready closing
+    
+</script>
+
+</head>
+<body>
+
+<h1> Sign Up Form </h1>
+
+<!-- <form> -- PAGE WILL BE RELOADED!! will clear all fields on page. Send info to server --> 
+<form id="signupForm" method="get" action="welcome.html">   <!-- THIS ALLOWS TO GO TO NEW PAGE -->
+    
+<fieldset>
+<legend>Sign Up</legend>
+First Name: <input type="text"><br> 
+Last Name: <input type="text"><br> 
+Email: <input type="text"><br> 
+Phone Number:<input type="text"><br><br>
+Zip Code: <input type="text" id="zipCode"> <span id="zipError" ></span><br>
+City: <span id="city"> </span>
+<br>
+Latitude: <span id="latitude"> </span>
+<br>
+Longitude: <span id="longitude"> </span>
+<br><br>
+State: 
+<select id="state">
+    
+    <option> Select One</option>
+    <!--
+    <option value="ca"> California </option>
+    <option value="ny"> New York </option>
+    <option value="tx"> Texas </option>
+    <option value="az"> Arizona</option>
+    -->
+</select>
+
+Select a County: 
+<select id="county"> 
+    <!--
+    <option> Select One</option>
+    
+    <option value="ca"> California </option>
+    <option value="ny"> New York </option>
+    <option value="tx"> Texas </option>
+    <option value="az"> Arizona</option>
+    -->
+    
+</select><br>
+
+Desired Username: <input type="text" id="username"><span id="usernameError" ></span><br>
+Password: <input type="password" id="pw"><span id="pwError"></span><br>
+Type Password Again: <input type="password" id="passwordAgain"><span id="passwordAgainError"></span><br>
+<input type="submit" value="Sign up!">
+</fieldset>
+</form> <!-- This allows to submit to server -->
+
+</body>
+</html>
